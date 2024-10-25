@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # NGINX for serving Magento
+  nginx:
+    image: nginx:${NGINX_DOCKER_IMAGE_VERSION}
+    container_name: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./magento2:/var/www/html
+      - ./ssl:/etc/nginx/ssl
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - php
+      - varnish
+    networks:
+      - magento
+
+  # Varnish cache in front of Nginx
+  varnish:
+    image: varnish:${VARNISH_DOCKER_IMAGE_VERSION}
+    container_name: varnish
+    volumes:
+      - ./default.vcl:/etc/varnish/default.vcl
+    ports:
+      - "6081:6081"
+    depends_on:
+      - php
+    networks:
+      - magento
+
+  # PHP-FPM with Magento
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+      args:
+        PHP_DOCKER_IMAGE_VERSION: ${PHP_DOCKER_IMAGE_VERSION}
+        PHP_INSTALL_XDEBUG: ${PHP_INSTALL_XDEBUG}
+        PHP_INSTALL_DEPENDENCIES: "${PHP_INSTALL_DEPENDENCIES}"
+        PHP_INSTALL_EXTENSIONS: ${PHP_INSTALL_EXTENSIONS}
+    container_name: php-fpm
+    volumes:
+      - ./magento2:/var/www/
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - magento
+    depends_on:
+      - mariadb
+      - redis
+      - opensearch
+    environment:
+      # Use MailCatcher as the SMTP server
+      MAIL_HOST: ${MAILCATCHER_HOST}
+      MAIL_PORT: ${MAILCATCHER_PORT}
+    env_file: ".env"
+
+  # MariaDB 10.6 for database
+  mariadb:
+    image: mariadb:${MARIADB_DOCKER_IMAGE_VERSION}
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./mariadb/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "3306:3306"
+    networks:
+      - magento
+
+  # Redis 7.2 for cache and session storage
+  redis:
+    image: redis:${REDIS_DOCKER_IMAGE_VERSION}
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - magento
+
+  # RabbitMQ 3.13 for asynchronous messaging
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_DOCKER_IMAGE_VERSION}
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    networks:
+      - magento
+
+  # OpenSearch 2.12 for search instead of Elasticsearch
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_DOCKER_IMAGE_VERSION}
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - plugins.security.disabled=true
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: ${OPENSEARCH_MEM_LIMIT}
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - magento
+
+  # MailCatcher service to capture emails
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - "1025:1025" # SMTP server
+      - "1080:1080" # Web interface
+    networks:
+      - magento
+
+volumes:
+  dbdata:
+    driver: local
+
+networks:
+  magento:
+    driver: bridge
+
