@@ -31,6 +31,12 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && mv composer.phar /usr/local/bin/composer
 
+ARG INSTALL_NEW_MAGENTO
 ARG MAGENTO_VERSION
-ARG MAGENTO_ROOT
-RUN composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} /var/www
+RUN if [ "${INSTALL_NEW_MAGENTO}" = "1" ]; then \
+    cd /var/www; \
+    rm -rf /var/www/*; \
+    composer global config http-basic.repo.magento.com f4b9fec8c3a512793cc2411946a9ca53 52fa6721ef439501f24718110502e7b2; \
+    composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} /var/www; \
+fi
+

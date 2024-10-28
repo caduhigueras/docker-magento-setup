@@ -43,6 +43,7 @@ services:
         PHP_INSTALL_EXTENSIONS: ${PHP_INSTALL_EXTENSIONS}
         MAGENTO_VERSION: ${MAGENTO_VERSION}
         MAGENTO_ROOT: ${MAGENTO_ROOT}
+        INSTALL_NEW_MAGENTO: ${INSTALL_NEW_MAGENTO}
     container_name: php-fpm
     volumes:
       - ./${MAGENTO_ROOT}:/var/www/
@@ -64,13 +65,13 @@ services:
     image: mariadb:${MARIADB_DOCKER_IMAGE_VERSION}
     container_name: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} 
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    volumes:
-      - dbdata:/var/lib/mysql
-      - ./mariadb/my.cnf:/etc/mysql/my.cnf
+    # volumes:
+    #   - dbdata:/var/lib/mysql
+    #   - ./mariadb/my.cnf:/etc/mysql/my.cnf
     ports:
       - "3306:3306"
     networks:
