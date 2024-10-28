@@ -7,7 +7,7 @@ services:
     container_name: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./magento2:/var/www/html
+      - ./${MAGENTO_ROOT}:/var/www
       - ./ssl:/etc/nginx/ssl
     ports:
       - "80:80"
@@ -41,9 +41,11 @@ services:
         PHP_INSTALL_XDEBUG: ${PHP_INSTALL_XDEBUG}
         PHP_INSTALL_DEPENDENCIES: "${PHP_INSTALL_DEPENDENCIES}"
         PHP_INSTALL_EXTENSIONS: ${PHP_INSTALL_EXTENSIONS}
+        MAGENTO_VERSION: ${MAGENTO_VERSION}
+        MAGENTO_ROOT: ${MAGENTO_ROOT}
     container_name: php-fpm
     volumes:
-      - ./magento2:/var/www/
+      - ./${MAGENTO_ROOT}:/var/www/
       - ./php/php.ini:/usr/local/etc/php/php.ini
     networks:
       - magento
