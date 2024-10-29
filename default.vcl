@@ -6,7 +6,7 @@ import std;
 # For SSL offloading, pass the following header in your proxy server or load balancer: 'X-Forwarded-Proto: https'
 
 backend default {
-    .host = "m2.clean";
+    .host = "0.0.0.0";
     .port = "8080";
     .first_byte_timeout = 600s;
     .probe = {
