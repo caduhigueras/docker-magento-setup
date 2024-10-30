@@ -7,7 +7,7 @@ import std;
 
 backend default {
     .host = "{{VCL_HOST_MASK}}";
-    .port = "8080";
+    .port = "0.0.0.0";
     .first_byte_timeout = 600s;
     .probe = {
         .url = "/health_check.php";
@@ -19,7 +19,7 @@ backend default {
 }
 
 acl purge {
-    "localhost";
+    "0.0.0.0";
 }
 
 sub vcl_recv {
