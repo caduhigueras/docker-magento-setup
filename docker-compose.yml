@@ -6,7 +6,7 @@ services:
     image: nginx:${NGINX_DOCKER_IMAGE_VERSION}
     container_name: nginx
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ${REPO_ROOT}:/var/www/html
       - ./ssl:/etc/nginx/ssl
     ports:
@@ -24,7 +24,7 @@ services:
     image: varnish:${VARNISH_DOCKER_IMAGE_VERSION}
     container_name: varnish
     volumes:
-      - ./default.vcl:/etc/varnish/default.vcl
+      - ./varnish/default.vcl:/etc/varnish/default.vcl
     ports:
       - "6081:6081"
     depends_on:
