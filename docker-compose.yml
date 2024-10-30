@@ -7,7 +7,7 @@ services:
     container_name: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./${REPO_ROOT}:/var/www/html
+      - ${REPO_ROOT}:/var/www/html
       - ./ssl:/etc/nginx/ssl
     ports:
       - "80:80"
@@ -63,9 +63,14 @@ services:
         INSTALL_NEW_MAGENTO: ${INSTALL_NEW_MAGENTO}
         MYSQL_DATABASE: ${MYSQL_DATABASE}
         MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        SYSTEM_USER_NAME: ${SYSTEM_USER_NAME}
+        SYSTEM_USER_UID: ${SYSTEM_USER_UID}
+        SYSTEM_USER_GID: ${SYSTEM_USER_GID}
+        MAGENTO_AUTH_CONSUMER: ${MAGENTO_AUTH_CONSUMER}
+        MAGENTO_AUTH_KEY: ${MAGENTO_AUTH_KEY}
     container_name: php-fpm
     volumes:
-      - ./${REPO_ROOT}:/var/www/html
+      - ${REPO_ROOT}:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/php.ini
     networks:
       - magento
