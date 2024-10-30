@@ -10,6 +10,7 @@ services:
       - ${REPO_ROOT}:/var/www/html
       - ./ssl:/etc/nginx/ssl
     ports:
+      - "8080:8080"
       - "80:80"
       - "443:443"
     depends_on:
@@ -142,4 +143,5 @@ volumes:
 networks:
   magento:
     driver: bridge
+    name: test_network
 
