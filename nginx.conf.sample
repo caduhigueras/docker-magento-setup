@@ -24,12 +24,12 @@ http {
         listen 80;
         listen 443 ssl;
 
-        server_name magento.test;
+        server_name {{MAGENTO_SERVER_NAME}};
 
-        ssl_certificate /etc/nginx/ssl/magento.crt;
-        ssl_certificate_key /etc/nginx/ssl/magento.key;
+        ssl_certificate /etc/nginx/ssl/{{MAGENTO_URL}}.crt;
+        ssl_certificate_key /etc/nginx/ssl/{{MAGENTO_URL}}.key;
 
-        root /var/www;
+        root /var/www/html;
         index index.php;
 
         location / {
