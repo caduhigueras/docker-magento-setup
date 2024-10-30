@@ -4,3 +4,4 @@
 nginx/*
 varnish/*
 ssl/*
+.idea/

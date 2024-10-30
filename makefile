@@ -30,10 +30,12 @@ else
 	####### NGINX CONFIG ########
 	@echo "Preparing Nginx Conf file"
 	@mkdir -p nginx
+	@mkdir -p nginx/conf.d
 	@cp nginx.conf.sample nginx/nginx.conf
-	@sed -i -e 's/{{MAGENTO_SERVER_NAME}}/$(MAGENTO_SERVER_NAME)/g' nginx/nginx.conf
-	@sed -i -e 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx/nginx.conf
-	@sed -i -e 's/{{NGINX_CONF_FILE}}/$(NGINX_CONF_FILE)/g' nginx/nginx.conf
+	@cp server.nginx.conf.sample nginx/conf.d/$(MAGENTO_URL).conf
+	@sed -i -e 's/{{MAGENTO_SERVER_NAME}}/$(MAGENTO_SERVER_NAME)/g' nginx/conf.d/$(MAGENTO_URL).conf
+	@sed -i -e 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx/conf.d/$(MAGENTO_URL).conf
+	@sed -i -e 's/{{NGINX_CONF_FILE}}/$(NGINX_CONF_FILE)/g' nginx/conf.d/$(MAGENTO_URL).conf
 	@echo "✓ Nginx File Conf generated correctly"
 endif
 

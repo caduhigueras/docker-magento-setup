@@ -1,0 +1,17 @@
+upstream fastcgi_backend {
+   # use tcp connection
+   server  php-fpm:9000;
+}
+
+server {
+   listen 443 ssl;
+
+   server_name {{MAGENTO_SERVER_NAME}};
+
+   ssl_certificate /etc/nginx/ssl/{{MAGENTO_URL}}.crt;
+   ssl_certificate_key /etc/nginx/ssl/{{MAGENTO_URL}}.key;
+
+   set $MAGE_ROOT /var/www/html;
+   #set $MAGE_DEBUG_SHOW_ARGS 0;
+   include /var/www/html/{{NGINX_CONF_FILE}};
+}
