@@ -19,37 +19,22 @@ http {
 
     sendfile        on;
     keepalive_timeout  65;
+    upstream fastcgi_backend {
+       # use tcp connection
+       server  php-fpm:9000;
+    }
 
     server {
-        listen 80;
-        listen 443 ssl;
+       listen 443 ssl;
 
-        server_name magento.test;
+       server_name {{MAGENTO_SERVER_NAME}};
 
-        ssl_certificate /etc/nginx/ssl/magento.crt;
-        ssl_certificate_key /etc/nginx/ssl/magento.key;
+       ssl_certificate /etc/nginx/ssl/{{MAGENTO_URL}}.crt;
+       ssl_certificate_key /etc/nginx/ssl/{{MAGENTO_URL}}.key;
 
-        root /var/www;
-        index index.php;
-
-        location / {
-            try_files $uri $uri/ /index.php$is_args$args;
-        }
-
-        location ~ \.php$ {
-            include fastcgi_params;
-            fastcgi_pass php-fpm:9000;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            fastcgi_param MAGE_RUN_TYPE default;
-            fastcgi_param MAGE_RUN_CODE default;
-        }
-
-        location /pub/ {
-            autoindex off;
-            allow all;
-        }
-
-        error_page 404 /errors/404.html;
+       set $MAGE_ROOT /var/www/html;
+       #set $MAGE_DEBUG_SHOW_ARGS 0;
+       include /var/www/html/{{NGINX_CONF_FILE}};
     }
 }
 

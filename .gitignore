@@ -1,3 +1,6 @@
 .env
 *.crt
 *.key
+nginx/*
+varnish/*
+ssl/*
