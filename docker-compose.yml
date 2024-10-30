@@ -22,16 +22,22 @@ services:
 
   # Varnish cache in front of Nginx
   varnish:
-    image: varnish:${VARNISH_DOCKER_IMAGE_VERSION}
+    build:
+      context: ./varnish
+      dockerfile: Dockerfile
+      args:
+        VARNISH_DOCKER_IMAGE_VERSION: ${VARNISH_DOCKER_IMAGE_VERSION}
     container_name: varnish
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl
+      - ./varnish/secret:/etc/varnish/secret
     ports:
       - "6081:6081"
     depends_on:
       - php
     networks:
       - magento
+    env_file: ".env"
 
   # MariaDB 10.6 for database
   mariadb:
