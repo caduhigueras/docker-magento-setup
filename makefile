@@ -23,14 +23,13 @@ else
 	####### VARNISH SETTINGS #######
 	@echo "Preparing Varnish VCL file"
 	@cp default.vcl.sample default.vcl
-	@sed -ie 's/{{VCL_HOST_MASK}}/$(MAGENTO_URL)/g' default.vcl
 	@echo "✓ VCL generated correctly"
 
 	####### NGINX CONFIG ########
 	@echo "Preparing Nginx Conf file"
 	@cp nginx.conf.sample nginx.conf
-	@sed -ie 's/{{MAGENTO_SERVER_NAME}}/$(MAGENTO_SERVER_NAME)/g' nginx.conf
-	@sed -ie 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx.conf
+	@sed -i -e 's/{{MAGENTO_SERVER_NAME}}/$(MAGENTO_SERVER_NAME)/g' nginx.conf
+	@sed -i -e 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx.conf
 	@echo "✓ Nginx File Conf generated correctly"
 
 endif
