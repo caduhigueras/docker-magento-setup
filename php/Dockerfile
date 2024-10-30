@@ -53,14 +53,8 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && sudo chown -R ${USER_NAME}:root /usr/local/bin/composer \
     && sudo chown -R ${USER_NAME}:www-data /var/www/html
 
-RUN composer global config http-basic.repo.magento.com f4b9fec8c3a512793cc2411946a9ca53 52fa6721ef439501f24718110502e7b2 \
-    && composer config --global --auth github-oauth.github.com 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
+ARG MAGENTO_AUTH_CONSUMER
+ARG MAGENTO_AUTH_KEY
 
-ARG INSTALL_NEW_MAGENTO
-ARG MAGENTO_VERSION
-ARG MAGENTO_ROOT
-
-# RUN if [ "${INSTALL_NEW_MAGENTO}" = "1" ]; then \
-#     composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION}; \
-# fi
+RUN composer global config http-basic.repo.magento.com ${MAGENTO_AUTH_CONSUMER} ${MAGENTO_AUTH_KEY}
 
