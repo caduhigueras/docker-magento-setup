@@ -16,7 +16,7 @@ services:
       - "443:443"
     depends_on:
       - php
-      - varnish
+      # - varnish
     networks:
       - magento
 
@@ -33,8 +33,11 @@ services:
       - ./varnish/secret:/etc/varnish/secret
     ports:
       - "6081:6081"
+      - "6082:6082"
+      # - "80:80"
     depends_on:
       - php
+      # - nginx
     networks:
       - magento
     env_file: ".env"
