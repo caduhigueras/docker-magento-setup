@@ -17,24 +17,32 @@ http {
 
     access_log  /var/log/nginx/access.log  main;
 
-    sendfile        on;
-    keepalive_timeout  65;
-    upstream fastcgi_backend {
-       # use tcp connection
-       server  php-fpm:9000;
-    }
+    sendfile on;
+    tcp_nopush on;
+    tcp_nodelay on;
+    keepalive_timeout 95;
+    send_timeout 90;
+    types_hash_max_size 2048;
+    fastcgi_read_timeout 600;
+    proxy_read_timeout 600;
+    #proxy_send_timeout 600;
+    #proxy_connect_timeout 600;
+    # extra settings for 7.4
+    fastcgi_buffers 16 16k;
+    fastcgi_buffer_size 32k;
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+    proxy_busy_buffers_size 256k;
+    client_max_body_size 512M;
+#    client_header_timeout 3000;
+#    client_body_timeout 3000;
+    gzip  on;
+	gzip_vary on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_buffers 16 8k;
+	gzip_http_version 1.1;
 
-    server {
-       listen 443 ssl;
-
-       server_name {{MAGENTO_SERVER_NAME}};
-
-       ssl_certificate /etc/nginx/ssl/{{MAGENTO_URL}}.crt;
-       ssl_certificate_key /etc/nginx/ssl/{{MAGENTO_URL}}.key;
-
-       set $MAGE_ROOT /var/www/html;
-       #set $MAGE_DEBUG_SHOW_ARGS 0;
-       include /var/www/html/{{NGINX_CONF_FILE}};
-    }
+    include /etc/nginx/conf.d/*.conf;
 }
 
