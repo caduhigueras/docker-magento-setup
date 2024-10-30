@@ -39,7 +39,7 @@ RUN groupadd -g ${USER_GID} ${USER_NAME} && \
 WORKDIR /var/www/html
 
 # Allow the magento user to run any sudo command without a password
-RUN echo "magento ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN echo "${SYSTEM_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to the non-root user
 USER ${SYSTEM_USER_NAME}
