@@ -30,10 +30,10 @@ ARG SYSTEM_USER_UID
 ARG SYSTEM_USER_GID
 
 # Install required packages and create user/group
-RUN groupadd -g ${USER_GID} ${USER_NAME} && \
-    useradd -u ${USER_UID} -g ${USER_NAME} -m ${USER_NAME} && \
-    usermod -a -G www-data ${USER_NAME} && \
-    chown -R ${USER_NAME}:${USER_NAME} /var/www
+RUN groupadd -g ${SYSTEM_USER_GID} ${SYSTEM_USER_NAME} && \
+    useradd -u ${SYSTEM_USER_UID} -g ${SYSTEM_USER_NAME} -m ${SYSTEM_USER_NAME} && \
+    usermod -a -G www-data ${SYSTEM_USER_NAME} && \
+    chown -R ${SYSTEM_USER_NAME}:${SYSTEM_USER_NAME} /var/www
 
 # Set the working directory to /var/www
 WORKDIR /var/www/html
