@@ -25,9 +25,9 @@ COPY php.ini /usr/local/etc/php/
 RUN #usermod -u 1000 www-data
 
 # Define user and group for the application
-ARG USER_NAME=magento
-ARG USER_UID=1030
-ARG USER_GID=1030
+ARG SYSTEM_USER_NAME
+ARG SYSTEM_USER_UID
+ARG SYSTEM_USER_GID
 
 # Install required packages and create user/group
 RUN groupadd -g ${USER_GID} ${USER_NAME} && \
@@ -42,7 +42,7 @@ WORKDIR /var/www/html
 RUN echo "magento ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to the non-root user
-USER ${USER_NAME}
+USER ${SYSTEM_USER_NAME}
 
 # Install Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
