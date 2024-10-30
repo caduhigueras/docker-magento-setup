@@ -2,7 +2,7 @@
 *.crt
 *.key
 nginx/*
-varnish/*
+varnish/*.vcl
 ssl/*
 .idea/
 .db/
