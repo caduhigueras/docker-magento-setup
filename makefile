@@ -14,13 +14,15 @@ ifneq ($(wildcard .env), .env)
 else
 	# echo $(wildcard ssl/)
 	# @echo ${MAGENTO_URL}
-	
+
+	@mkdir -p db
+
 	######## SSL CONFIG ########
 	@echo "Generating ssl certificates."
 	@mkdir -p ssl
 	@openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/${MAGENTO_URL}.key -out ssl/${MAGENTO_URL}.crt -subj "/C=$(SSL_COUNTRY)/ST=$(SSL_STATE)/L=$(SSL_LOCATION)/O=$(SSL_ORGANIZATION)/CN=$(SSL_URL)"
 	@echo "✓ SSL certificates generated correctly"
-	
+
 	####### VARNISH SETTINGS #######
 	@echo "Preparing Varnish VCL file"
 	@mkdir -p varnish
@@ -57,4 +59,23 @@ install_magento:
 		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 	@echo "✓ Magento installed correctly"
 
-
+prepare_existing_magento:
+	@echo "Creating new database: ${MAGENTO_DB_NAME}"
+	@#mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
+	@echo "✓ Database create correctly"
+	@echo "Importing database from db/${DB_DUMP_NAME}"
+	@#pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} < db/${DB_DUMP_NAME}
+	@git clone ${REPO_TO_CLONE} ${REPO_ROOT}
+	@cd ${REPO_ROOT} && git checkout -f ${GIT_BRANCH}
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	sudo find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} + && \
+	sudo find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} + && \
+	sudo chown -R ${SYSTEM_USER_NAME}:www-data . "
+	@cp magento.env.sample ${REPO_ROOT}/app/etc/env.php
+	@sed -i -e 's/{{MAGENTO_ADMIN_NAME}}/$(MAGENTO_ADMIN_NAME)/g' ${REPO_ROOT}/app/etc/env.php
+	@sed -i -e 's/{{MAGENTO_DB_NAME}}/$(MAGENTO_DB_NAME)/g' ${REPO_ROOT}/app/etc/env.php
+	@sed -i -e 's/{{MAGENTO_DB_PASSWORD}}/$(MYSQL_ROOT_PASSWORD)/g' ${REPO_ROOT}/app/etc/env.php
+	@sed -i -e 's/{{CRYPT_KEY}}/$(CRYPT_KEY)/g' ${REPO_ROOT}/app/etc/env.php
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	composer install -o --no-progress --prefer-dist && \
+	bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
