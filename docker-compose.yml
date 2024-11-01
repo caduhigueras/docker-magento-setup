@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # NGINX for serving Magento
   nginx:
@@ -80,6 +78,8 @@ services:
         MAGENTO_AUTH_CONSUMER: ${MAGENTO_AUTH_CONSUMER}
         MAGENTO_AUTH_KEY: ${MAGENTO_AUTH_KEY}
     container_name: php-fpm
+    ports:
+      - "9000:9000"
     volumes:
       - ${REPO_ROOT}:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/php.ini
@@ -94,6 +94,8 @@ services:
       MAIL_HOST: ${MAILCATCHER_HOST}
       MAIL_PORT: ${MAILCATCHER_PORT}
     env_file: ".env"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Redis 7.2 for cache and session storage
   redis:
