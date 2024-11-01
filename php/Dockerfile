@@ -1,5 +1,4 @@
 ARG PHP_DOCKER_IMAGE_VERSION
-ARG PHP_INSTALL_XDEBUG
 
 FROM php:${PHP_DOCKER_IMAGE_VERSION}
 
@@ -17,6 +16,22 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
 # Enable Redis, PHP sockets, and other common Magento extensions
 RUN pecl install redis && docker-php-ext-enable redis
 RUN docker-php-ext-install sockets
+
+ARG PHP_INSTALL_XDEBUG
+#Install XDEBUG if enabled
+RUN if [ "${PHP_INSTALL_XDEBUG}" = "true" ]; then \
+    pecl install xdebug && \
+    docker-php-ext-enable xdebug; \
+fi
+
+RUN if [ "${PHP_INSTALL_XDEBUG}" = "true" ]; then \ 
+    echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+fi
 
 # Set memory limits and timezones (optional but recommended)
 COPY php.ini /usr/local/etc/php/
