@@ -57,8 +57,8 @@ install_magento:
 		sudo chown -R ${SYSTEM_USER_NAME}:www-data . && \
 		bin/magento deploy:mode:set developer && \
 		bin/magento setup:config:set --cache-backend=redis --cache-backend-redis-server=${REDIS_HOST} --cache-backend-redis-port=${REDIS_PORT} --cache-backend-redis-db=${REDIS_FRONTEND_CACHE_DB} && \
-		bin/magento setup:config:set --page-cache=redis --page-cache-redis-server=${REDIS_HOST} --page-cache-redis-port=${REDIS_PORT} --page-cache-redis-db=${REDIS_PAGE_CACHE_DB}
-		bin/magento setup:config:set --session-save=redis --session-save-redis-host=${REDIS_HOST} --session-save-redis-port=${REDIS_PORT} --session-save-redis-log-level=4 --session-save-redis-db=${REDIS_SESSION_DATABASE}
+		bin/magento setup:config:set --page-cache=redis --page-cache-redis-server=${REDIS_HOST} --page-cache-redis-port=${REDIS_PORT} --page-cache-redis-db=${REDIS_PAGE_CACHE_DB} && \
+		bin/magento setup:config:set --session-save=redis --session-save-redis-host=${REDIS_HOST} --session-save-redis-port=${REDIS_PORT} --session-save-redis-log-level=4 --session-save-redis-db=${REDIS_SESSION_DATABASE} && \
 		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 	@echo "✓ Magento installed correctly"
 
