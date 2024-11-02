@@ -77,6 +77,16 @@ services:
         SYSTEM_USER_GID: ${SYSTEM_USER_GID}
         MAGENTO_AUTH_CONSUMER: ${MAGENTO_AUTH_CONSUMER}
         MAGENTO_AUTH_KEY: ${MAGENTO_AUTH_KEY}
+        PHP_REALPATH_CACHE_SIZE: ${PHP_REALPATH_CACHE_SIZE}
+        PHP_REALPATH_CACHE_TTL: ${PHP_REALPATH_CACHE_TTL}
+        PHP_OPCACHE_MEMORY_CONSUMPTION: ${PHP_OPCACHE_MEMORY_CONSUMPTION}
+        PHP_OPCACHE_MAX_ACCELERATED_FILES: ${PHP_OPCACHE_MAX_ACCELERATED_FILES}
+        PHP_OPCACHE_CONSISTENCY_CHECKS: ${PHP_OPCACHE_CONSISTENCY_CHECKS}
+        PHP_OPCACHE_VALIDATE_TIMESTAMPS: ${PHP_OPCACHE_VALIDATE_TIMESTAMPS}
+        PHP_OPCACHE_ENABLE_CLI: ${PHP_OPCACHE_ENABLE_CLI}
+        PHP_OPCACHE_SAVE_COMMENTS: ${PHP_OPCACHE_SAVE_COMMENTS}
+        PHP_OPCACHE_FILE_OVERRIDE: ${PHP_OPCACHE_FILE_OVERRIDE}
+        PHP_OPCACHE_INTERNED_STRINGS: ${PHP_OPCACHE_INTERNED_STRINGS}
     container_name: php-fpm
     ports:
       - "9000:9000"
@@ -93,9 +103,26 @@ services:
       # Use MailCatcher as the SMTP server
       MAIL_HOST: ${MAILCATCHER_HOST}
       MAIL_PORT: ${MAILCATCHER_PORT}
+      BLACKFIRE_SERVER_ID: ${BLACKFIRE_SERVER_ID}
+      BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
+      BLACKFIRE_CLIENT_ID: ${BLACKFIRE_CLIENT_ID}
+      BLACKFIRE_CLIENT_TOKEN: ${BLACKFIRE_CLIENT_TOKEN}
     env_file: ".env"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  blackfire:
+    image: blackfire/blackfire
+    container_name: blackfire
+    environment:
+      BLACKFIRE_SERVER_ID: ${BLACKFIRE_SERVER_ID}
+      BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - php
+    networks:
+      - magento
 
   # Redis 7.2 for cache and session storage
   redis:
