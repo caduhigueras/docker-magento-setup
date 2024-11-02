@@ -28,7 +28,6 @@ services:
     container_name: varnish
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl
-      - ./varnish/secret:/etc/varnish/secret
     ports:
       - "6081:6081"
       - "6082:6082"
