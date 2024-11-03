@@ -22,7 +22,7 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 ## Installation Options
 
-### 1. Install a New Magento Instance
+### Option 1. Install a New Magento Instance
 
 1. Copy `.env.sample` to `.env`:
    ```bash
@@ -31,18 +31,23 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 2. Update `.env` with your specific configuration details.
 
-3. Start your Docker containers (on the first time you run, Nginx will exit):
+3. Trigger the generation of required files and settings:
+   ```bash
+   make
+   ```
+
+4. Start your Docker containers (on the first time you run, Nginx will exit):
    ```bash
    docker compose up -d
    ```
 
-4. Run the setup command:
+5. Run the setup command:
    ```bash
    make setup-new-magento
    ```
-5. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
+6. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
 
-### 2. Use an Existing Magento Repository
+### Option 2. Use an Existing Magento Repository
 
 1. Copy `.env.sample` to `.env`:
    ```bash
@@ -51,17 +56,21 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 2. Update `.env` to match your environment settings and link the repository path.
 
-3. Start your Docker containers (on the first time you run, Nginx will exit):
+3. Copy the .sql database dump into de ./db folder (create folder if it doesn't exist)
+
+4. Make sure the .sql file has the exact same name as the variable DB_DUMP_NAME at your .env file
+
+5. Start your Docker containers (on the first time you run, Nginx will exit):
    ```bash
    docker compose up -d
    ```
 
-4. Run the initialization command:
+6. Run the initialization command:
    ```bash
    make setup-existing-magento
    ```
 
-5. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
+7. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
 
 > ⚠️ **Note**: Running the same Docker Compose setup in different folders could result in database conflicts or data overwrites. Ensure the database names, ports, and volumes are unique to avoid unintended overwrites.
 
