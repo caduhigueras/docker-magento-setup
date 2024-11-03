@@ -29,16 +29,44 @@ else
 	@cp default.vcl.sample varnish/default.vcl
 	@echo "✓ VCL generated correctly"
 
-	####### NGINX CONFIG ########
-	@echo "Preparing Nginx Conf file"
-	@mkdir -p nginx
-	@mkdir -p nginx/conf.d
-	@cp nginx.conf.sample nginx/nginx.conf
-	@cp server.nginx.conf.sample nginx/conf.d/$(MAGENTO_URL).conf
-	@sed -i -e 's/{{MAGENTO_SERVER_NAME}}/$(MAGENTO_SERVER_NAME)/g' nginx/conf.d/$(MAGENTO_URL).conf
-	@sed -i -e 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx/conf.d/$(MAGENTO_URL).conf
-	@sed -i -e 's/{{NGINX_CONF_FILE}}/$(NGINX_CONF_FILE)/g' nginx/conf.d/$(MAGENTO_URL).conf
-	@echo "✓ Nginx File Conf generated correctly"
+	## Check if .env file contains MAGENTO_STORE_CODE_{SUFFIX} and MAGENTO_STORE_URL_{SUFFIX} pattern in order to define if map store code directive should be added and if will use dynamic server name generation for the nginx conf file
+	@all_urls=""; \
+	url_nginx_map=""; \
+	while IFS='=' read -r key value; do \
+		case "$$key" in \
+			MAGENTO_STORE_URL_*) \
+				url_value="$$value"; \
+				code_var="MAGENTO_STORE_CODE_$${key#MAGENTO_STORE_URL_}"; \
+				code_value=$$(grep "^$$code_var=" .env | cut -d= -f2); \
+				all_urls="$$all_urls $$url_value"; \
+				url_nginx_map="$$url_nginx_map    $$url_value $$code_value;\n"; \
+				;; \
+		esac; \
+	done < .env ; \
+	\
+	######## NGINX CONFIG ######## \
+	echo "Preparing Nginx Conf file"; \
+	mkdir -p nginx; \
+	mkdir -p nginx/conf.d; \
+	cp nginx.conf.sample nginx/nginx.conf; \
+	cp server.nginx.conf.sample nginx/conf.d/$(MAGENTO_URL).conf; \
+	\
+	# Add server name based on env \
+	if [ -n "$$all_urls" ]; then \
+		sed -i -e "s/{{MAGENTO_SERVER_NAME}}/$$all_urls/g" nginx/conf.d/$(MAGENTO_URL).conf; \
+	else \
+		sed -i -e 's/{{MAGENTO_SERVER_NAME}}/ $(MAGENTO_SERVER_NAME)/g' nginx/conf.d/$(MAGENTO_URL).conf; \
+	fi; \
+	sed -i -e 's/{{MAGENTO_URL}}/$(MAGENTO_URL)/g' nginx/conf.d/$(MAGENTO_URL).conf; \
+	sed -i -e 's/{{NGINX_CONF_FILE}}/$(NGINX_CONF_FILE)/g' nginx/conf.d/$(MAGENTO_URL).conf; \
+	\
+	# Add map directive if required \
+	if [ -n "$$url_nginx_map" ]; then \
+		sed -i -e "s|{{MAP_DIRECTIVE}}|\nmap \$$http_host \$$MAGE_RUN_CODE {\n$$url_nginx_map}\n|g" nginx/conf.d/$(MAGENTO_URL).conf; \
+	else \
+		sed -i -e "s/{{MAP_DIRECTIVE}}//g" nginx/conf.d/$(MAGENTO_URL).conf; \
+	fi; \
+	echo "✓ Nginx File Conf generated correctly"
 endif
 
 install_magento:
