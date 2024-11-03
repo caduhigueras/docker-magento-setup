@@ -159,7 +159,6 @@ services:
       memlock:
         soft: -1
         hard: -1
-#      mem_limit: ${OPENSEARCH_MEM_LIMIT}
     ports:
       - "9200:9200"
       - "9600:9600"

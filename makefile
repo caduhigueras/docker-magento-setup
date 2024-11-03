@@ -50,17 +50,21 @@ install_magento:
 		composer global config http-basic.repo.magento.com ${MAGENTO_AUTH_CONSUMER} ${MAGENTO_AUTH_KEY} && \
 		composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} && \
 		mv project-community-edition/* ../html/ && \
-		sudo chown -R ${SYSTEM_USER_NAME}:www-data . && \
+		rm -rf project-community-edition/* && \
 		bin/magento setup:install --base-url=https://${MAGENTO_URL} --db-host=mariadb --db-name=${MAGENTO_DB_NAME} --db-user=root --db-password=${MYSQL_ROOT_PASSWORD} --backend-frontname=${MAGENTO_BACKEND_FRONTNAME} --admin-firstname=${MAGENTO_ADMIN_NAME} --admin-lastname=${MAGENTO_ADMIN_LAST_NAME} --admin-email=${MAGENTO_ADMIN_EMAIL} --admin-user=${MAGENTO_ADMIN_USER} --admin-password=${MAGENTO_ADMIN_PASSWORD} --language=${MAGENTO_LANGUAGE} --currency=${MAGENTO_CURRENCY} --timezone=${MAGENTO_TIMEZONE} --use-rewrites=1 --search-engine=opensearch --opensearch-host=opensearch --opensearch-port=9200 --opensearch-password=${OPENSEARCH_INITIAL_ADMIN_PASSWORD} --opensearch-index-prefix=${MAGENTO_DB_NAME}_ && \
 		sudo find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} + && \
 		sudo find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} + && \
 		sudo chown -R ${SYSTEM_USER_NAME}:www-data . && \
+		rm -rf generated/* && \
 		bin/magento deploy:mode:set developer && \
 		bin/magento setup:config:set --cache-backend=redis --cache-backend-redis-server=${REDIS_HOST} --cache-backend-redis-port=${REDIS_PORT} --cache-backend-redis-db=${REDIS_FRONTEND_CACHE_DB} && \
 		bin/magento setup:config:set --page-cache=redis --page-cache-redis-server=${REDIS_HOST} --page-cache-redis-port=${REDIS_PORT} --page-cache-redis-db=${REDIS_PAGE_CACHE_DB} && \
 		bin/magento setup:config:set --session-save=redis --session-save-redis-host=${REDIS_HOST} --session-save-redis-port=${REDIS_PORT} --session-save-redis-log-level=4 --session-save-redis-db=${REDIS_SESSION_DATABASE} && \
 		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 	@echo "✓ Magento installed correctly"
+	@echo "Start Nginx Service"
+	@docker compose up -d nginx
+	@echo "✓ Nginx started correctly"
 
 prepare_existing_magento:
 	# IMPORT DATABASE DUMP
@@ -121,3 +125,38 @@ prepare_existing_magento:
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 	composer install -o --no-progress --prefer-dist && \
 	bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
+
+deploy_full:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	composer update -o --no-progress --prefer-dist && \
+	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
+	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
+
+deploy:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
+	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
+
+front_static_deploy:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	# Usage: make theme=Onedirect/blank front_static_deploy
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	rm -rf pub/static/frontend/* && bin/magento s:s:d -f -a frontend -t $(theme) && bin/magento c:f"
+
+admin_static_deploy:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	rm -rf pub/static/adminhtml/* && \
+	bin/magento s:s:d -f -a adminhtml && bin/magento c:f"
+
+di_deploy:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	rm -rf generated/* && bin/magento s:d:c && bin/magento c:f"
+
+db_deploy:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	bin/magento s:up --keep-generated && bin/magento c:f"
