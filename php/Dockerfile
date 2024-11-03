@@ -22,6 +22,9 @@ RUN echo ${PHP_INSTALL_DEPENDENCIES}
 # Install dependencies
 RUN apt-get update && apt-get install -y ${PHP_INSTALL_DEPENDENCIES}
 
+# Required for Mailcacther to work
+RUN apt-get update && apt-get install -y msmtp
+
 # Install PHP extensions
 ARG PHP_INSTALL_EXTENSIONS
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \

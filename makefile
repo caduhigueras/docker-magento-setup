@@ -51,17 +51,20 @@ install_magento:
 		composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} && \
 		mv project-community-edition/* ../html/ && \
 		rm -rf project-community-edition/* && \
-		bin/magento setup:install --base-url=https://${MAGENTO_URL} --db-host=mariadb --db-name=${MAGENTO_DB_NAME} --db-user=root --db-password=${MYSQL_ROOT_PASSWORD} --backend-frontname=${MAGENTO_BACKEND_FRONTNAME} --admin-firstname=${MAGENTO_ADMIN_NAME} --admin-lastname=${MAGENTO_ADMIN_LAST_NAME} --admin-email=${MAGENTO_ADMIN_EMAIL} --admin-user=${MAGENTO_ADMIN_USER} --admin-password=${MAGENTO_ADMIN_PASSWORD} --language=${MAGENTO_LANGUAGE} --currency=${MAGENTO_CURRENCY} --timezone=${MAGENTO_TIMEZONE} --use-rewrites=1 --search-engine=opensearch --opensearch-host=opensearch --opensearch-port=9200 --opensearch-password=${OPENSEARCH_INITIAL_ADMIN_PASSWORD} --opensearch-index-prefix=${MAGENTO_DB_NAME}_ && \
+		bin/magento setup:install --base-url=https://${MAGENTO_URL} --db-host=mariadb --db-name=${MAGENTO_DB_NAME} --db-user=root --db-password=${MYSQL_ROOT_PASSWORD} --backend-frontname=${MAGENTO_BACKEND_FRONTNAME} --admin-firstname=${MAGENTO_ADMIN_NAME} --admin-lastname=${MAGENTO_ADMIN_LAST_NAME} --admin-email=${MAGENTO_ADMIN_EMAIL} --admin-user=${MAGENTO_ADMIN_USER} --admin-password=${MAGENTO_ADMIN_PASSWORD} --language=${MAGENTO_LANGUAGE} --currency=${MAGENTO_CURRENCY} --timezone=${MAGENTO_TIMEZONE} --use-rewrites=1 --search-engine=opensearch --opensearch-host=opensearch --opensearch-port=9200 --opensearch-password=${OPENSEARCH_INITIAL_ADMIN_PASSWORD} --opensearch-index-prefix=${MAGENTO_DB_NAME}_ --cache-backend=redis --cache-backend-redis-server=${REDIS_HOST} --cache-backend-redis-port=${REDIS_PORT} --cache-backend-redis-db=${REDIS_FRONTEND_CACHE_DB} --page-cache=redis --page-cache-redis-server=${REDIS_HOST} --page-cache-redis-port=${REDIS_PORT} --page-cache-redis-db=${REDIS_PAGE_CACHE_DB} --session-save=redis --session-save-redis-host=${REDIS_HOST} --session-save-redis-port=${REDIS_PORT} --session-save-redis-log-level=4 --session-save-redis-db=${REDIS_SESSION_DATABASE} && \
 		sudo find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} + && \
 		sudo find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} + && \
 		sudo chown -R ${SYSTEM_USER_NAME}:www-data . && \
 		rm -rf generated/* && \
 		bin/magento deploy:mode:set developer && \
-		bin/magento setup:config:set --cache-backend=redis --cache-backend-redis-server=${REDIS_HOST} --cache-backend-redis-port=${REDIS_PORT} --cache-backend-redis-db=${REDIS_FRONTEND_CACHE_DB} && \
-		bin/magento setup:config:set --page-cache=redis --page-cache-redis-server=${REDIS_HOST} --page-cache-redis-port=${REDIS_PORT} --page-cache-redis-db=${REDIS_PAGE_CACHE_DB} && \
-		bin/magento setup:config:set --session-save=redis --session-save-redis-host=${REDIS_HOST} --session-save-redis-port=${REDIS_PORT} --session-save-redis-log-level=4 --session-save-redis-db=${REDIS_SESSION_DATABASE} && \
 		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 	@echo "✓ Magento installed correctly"
+	@echo "Configure MailCatcher"
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+		bin/magento config:set system/smtp/transport smtp && \
+		bin/magento config:set system/smtp/port 1025 && \
+		bin/magento config:set system/smtp/host mailcatcher"
+	@echo "✓ Mailcatcher configured correctly"
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
 	@echo "✓ Nginx started correctly"
@@ -123,8 +126,11 @@ prepare_existing_magento:
 
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
-	composer install -o --no-progress --prefer-dist && \
-	bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
+		composer install -o --no-progress --prefer-dist && \
+		bin/magento config:set system/smtp/transport smtp && \
+		bin/magento config:set system/smtp/port 1025 && \
+		bin/magento config:set system/smtp/host mailcatcher"
+		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
 
 deploy_full:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER

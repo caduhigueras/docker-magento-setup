@@ -13,6 +13,7 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 - **N98**: Installed on the PHP service so you can speed up your development.
 - **Redis and Opensearch**: Automatically installed configured in new or existing Magento instances.
 - **Blackfire**: Profile your Magento and take your development to the next level 
+- **Mailcatcher**: For sending test emails inside your local environment 
 - **Makefile for Commands**: Simplifies common operations like starting, stopping, and resetting services.
 
 ## Prerequisites
