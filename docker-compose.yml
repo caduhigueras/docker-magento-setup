@@ -183,5 +183,5 @@ volumes:
 networks:
   magento:
     driver: bridge
-    name: test_network
+    name: "${NETWORK_NAME}"
 
