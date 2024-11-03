@@ -2,6 +2,20 @@ ARG PHP_DOCKER_IMAGE_VERSION
 
 FROM php:${PHP_DOCKER_IMAGE_VERSION}
 
+# Define user and group for the application
+ARG SYSTEM_USER_NAME
+ARG SYSTEM_USER_UID
+ARG SYSTEM_USER_GID
+
+# Install required packages and create user/group
+RUN groupadd -g ${SYSTEM_USER_GID} ${SYSTEM_USER_NAME} && \
+    useradd -u ${SYSTEM_USER_UID} -g ${SYSTEM_USER_NAME} -m ${SYSTEM_USER_NAME} && \
+    usermod -a -G www-data ${SYSTEM_USER_NAME} && \
+    chown -R ${SYSTEM_USER_NAME}:${SYSTEM_USER_NAME} /var/www
+
+# Set the working directory to /var/www
+WORKDIR /var/www/html
+
 ARG PHP_INSTALL_DEPENDENCIES
 RUN echo ${PHP_INSTALL_DEPENDENCIES}
 
@@ -28,7 +42,9 @@ RUN if [ "${PHP_INSTALL_XDEBUG}" = "true" ]; then \
     && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini; \
+    && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    sudo touch /tmp/xdebug.log && \
+    sudo chown ${SYSTEM_USER_NAME}:root /tmp/xdebug.log; \
 fi
 
 # Add OPCACHE Config Settings
@@ -69,25 +85,16 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION.(PHP_ZTS ? '-zts'
 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8307\n" > /usr/local/etc/php/conf.d/blackfire.ini \
 && rm -rf /tmp/blackfire /tmp/blackfire-probe.tar.gz
 
-# Ensure the container runs as non-root user (optional)
-RUN #usermod -u 1000 www-data
-
-# Define user and group for the application
-ARG SYSTEM_USER_NAME
-ARG SYSTEM_USER_UID
-ARG SYSTEM_USER_GID
-
-# Install required packages and create user/group
-RUN groupadd -g ${SYSTEM_USER_GID} ${SYSTEM_USER_NAME} && \
-    useradd -u ${SYSTEM_USER_UID} -g ${SYSTEM_USER_NAME} -m ${SYSTEM_USER_NAME} && \
-    usermod -a -G www-data ${SYSTEM_USER_NAME} && \
-    chown -R ${SYSTEM_USER_NAME}:${SYSTEM_USER_NAME} /var/www
-
-# Set the working directory to /var/www
-WORKDIR /var/www/html
-
 # Allow the magento user to run any sudo command without a password
 RUN echo "${SYSTEM_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Install n98-magerun
+ARG INSTALL_N98
+RUN if [ "${INSTALL_N98}" = "true" ]; then \ 
+   curl -L https://files.magerun.net/n98-magerun2.phar -o /usr/local/bin/n98 && \
+    chmod +x /usr/local/bin/n98 && \
+    sudo chown -R ${SYSTEM_USER_NAME}:www-data /usr/local/bin/n98; \
+fi
 
 # Switch to the non-root user
 USER ${SYSTEM_USER_NAME}
