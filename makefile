@@ -104,6 +104,11 @@ prepare_existing_magento:
 	@echo "✓ Database create correctly"
 	@echo "Importing database from db/${DB_DUMP_NAME}"
 	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} < db/${DB_DUMP_NAME}
+	#UPDATE OPENSEARCH DATA STRAIGHT ON THE DATABASE
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/engine', 'opensearch') ON DUPLICATE KEY UPDATE value = 'opensearch';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_password', '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_port', '${OPENSEARCH_PORT}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_PORT}';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_hostname', '${OPENSEARCH_HOSTNAME}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_HOSTNAME}';"
 	@git clone ${REPO_TO_CLONE} ${REPO_ROOT}
 
 	# CLONE REPO AND APPLY PERMISSIONS
@@ -155,10 +160,15 @@ prepare_existing_magento:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 		composer install -o --no-progress --prefer-dist && \
+		bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer && \
 		bin/magento config:set system/smtp/transport smtp && \
-		bin/magento config:set system/smtp/port 1025 && \
-		bin/magento config:set system/smtp/host mailcatcher"
-		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
+        bin/magento config:set system/smtp/port 1025 && \
+        bin/magento config:set system/smtp/host mailcatcher"
+
+	# START NGINX
+	@echo "Start Nginx Service"
+	@docker compose up -d nginx
+	@echo "✓ Nginx started correctly"
 
 deploy_full:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
