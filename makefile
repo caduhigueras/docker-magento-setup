@@ -155,7 +155,6 @@ prepare_existing_magento:
 	@sed -i -e 's/{{REDIS_PAGE_CACHE_COMPRESS_DATA}}/$(REDIS_PAGE_CACHE_COMPRESS_DATA)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{REDIS_PAGE_CACHE_COMPRESS_LIB}}/$(REDIS_PAGE_CACHE_COMPRESS_LIB)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{CACHE_ALLOW_PARALLEL_GENERATION}}/$(CACHE_ALLOW_PARALLEL_GENERATION)/g' ${REPO_ROOT}/app/etc/env.php
-	@sed -i -e 's/{{OPENSEARCH_INITIAL_ADMIN_PASSWORD}}/$(OPENSEARCH_INITIAL_ADMIN_PASSWORD)/g' ${REPO_ROOT}/app/etc/env.php
 
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
