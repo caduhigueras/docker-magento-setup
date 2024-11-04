@@ -18,11 +18,31 @@ backend default {
    }
 }
 
+acl profile {
+   "0.0.0.0";
+   "nginx";
+   "172.18.0.1";
+   "172.18.0.9";
+}
+
 acl purge {
     "nginx";
 }
 
 sub vcl_recv {
+    if (req.http.X-Blackfire-Query && client.ip ~ profile) {
+        if (req.esi_level > 0) {
+            # ESI request should not be included in the profile.
+            # Instead you should profile them separately, each one
+            # in their dedicated profile.
+            # Removing the Blackfire header avoids to trigger the profiling.
+            # Not returning let it go trough your usual workflow as a regular
+            # ESI request without distinction.
+            unset req.http.X-Blackfire-Query;
+        } else {
+            return (pass);
+        }
+    }
     if (req.restarts > 0) {
         set req.hash_always_miss = true;
     }
