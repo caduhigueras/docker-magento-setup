@@ -20,6 +20,11 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 - Docker installed [See Details](https://docs.docker.com/desktop/)
 - (Optional) GNU Make for using make commands
+- PV installed - If you using ubuntu: 
+    ```bash
+    apt-get install pv
+    ```
+- Having an account in [Commerce Marketplace](https://commercemarketplace.adobe.com/) and having Consumer Key and Secret within "Access keys"
 
 ## Installation Options
 
@@ -57,21 +62,26 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 2. Update `.env` to match your environment settings and link the repository path.
 
-3. Copy the .sql database dump into de ./db folder (create folder if it doesn't exist)
+3. Trigger the generation of required files and settings:
+   ```bash
+   make
+   ```
 
-4. Make sure the .sql file has the exact same name as the variable DB_DUMP_NAME at your .env file
+4. Copy the .sql database dump into de ./db folder (create folder if it doesn't exist)
 
-5. Start your Docker containers (on the first time you run, Nginx will exit):
+5. Make sure the .sql file has the exact same name as the variable DB_DUMP_NAME at your .env file
+
+6. Start your Docker containers (on the first time you run, Nginx will exit):
    ```bash
    docker compose up -d
    ```
 
-6. Run the initialization command:
+7. Run the initialization command:
    ```bash
    make setup-existing-magento
    ```
 
-7. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
+8. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
 
 > ⚠️ **Note**: Running the same Docker Compose setup in different folders could result in database conflicts or data overwrites. Ensure the database names, ports, and volumes are unique to avoid unintended overwrites.
 
@@ -131,3 +141,4 @@ You can also use standard Docker Compose commands as needed:
 - **Database Conflicts**: If running multiple instances of this setup, ensure the database names, ports, and data volumes are unique.
 - **Container Restarts**: If services fail to start, try restarting with `make restart` or `docker-compose restart <service_name>`.
 - **Permissions Issues**: Adjust file and folder permissions as needed to ensure the Magento service has access.
+- **XDEBUG on PHP storm**: Add the server mapping for the folders.
