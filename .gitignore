@@ -5,4 +5,5 @@ nginx/*
 varnish/*.vcl
 ssl/*
 .idea/
-.db/
+.
+db/*
