@@ -203,3 +203,19 @@ db_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 	bin/magento s:up --keep-generated && bin/magento c:f"
+
+up:
+	@docker compose up -d
+
+down:
+	@docker compose down
+
+restart:
+	@docker compose restart
+
+db-import:
+	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME}
+
+db-export:
+	@mkdir -p db
+	@mysqldump -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} > db/${MAGENTO_DB_NAME}.sql

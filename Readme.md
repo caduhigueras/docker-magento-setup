@@ -105,8 +105,9 @@ This project includes a `Makefile` with various commands to simplify working wit
   - `make restart` - Restart all services.
 
 - **Database Commands**:
-  - `make db-import` - Import a database dump into MariaDB.
+  - `make db-import` - Import a database dump in MariaDB (using the Magento DB set on the env file).
   - `make db-export` - Export the current database state to a file.
+> ⚠️ **Note**: Using make db-import will overwrite all data on your current MariaDB database set in your env.
 
 - **Utility Commands**:
   - `make clean` - Remove any unused data or stopped containers.
