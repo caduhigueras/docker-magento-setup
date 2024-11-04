@@ -25,6 +25,12 @@ services:
       dockerfile: Dockerfile
       args:
         VARNISH_DOCKER_IMAGE_VERSION: ${VARNISH_DOCKER_IMAGE_VERSION}
+        VARNISH_HTTP_PORT: ${VARNISH_HTTP_PORT}
+        VARNISH_BACKEND_PORT: ${VARNISH_BACKEND_PORT}
+        VARNISH_MEMORY_ALLOCATION: ${VARNISH_MEMORY_ALLOCATION}
+        VARNISH_HTTP_RESP_HDR_LEN: ${VARNISH_HTTP_RESP_HDR_LEN}
+        VARNISH_HTTP_RESP_SIZE: ${VARNISH_HTTP_RESP_SIZE}
+        VARNISH_HTTP_WORKSPACE_BACKEND: ${VARNISH_HTTP_WORKSPACE_BACKEND}
     container_name: varnish
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl
