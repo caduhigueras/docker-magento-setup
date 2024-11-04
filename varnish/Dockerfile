@@ -14,4 +14,4 @@ RUN echo "varnish ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # Set up the user to be used
 USER varnish
 
-CMD ["varnishd", "-a", ":6081", "-T", "localhost:6082", "-F", "-f", "/etc/varnish/default.vcl", "-s", "malloc,2G", "-p", "http_resp_hdr_len=65536", "-p", "http_resp_size=98304", "-p", "workspace_backend=98304"]
+CMD ["varnishd", "-a", ":6081", "-T", "localhost:6082", "-F", "-f", "/etc/varnish/default.vcl", "-s", "malloc,4G", "-p", "http_resp_hdr_len=131072", "-p", "http_resp_size=196608", "-p", "workspace_backend=512M"]
