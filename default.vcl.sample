@@ -18,11 +18,12 @@ backend default {
    }
 }
 
+# Typically Docker runs locally on an IP range from 172.*.*.*
+# This will cover from 172.0.0.0 to 172.255.255.255
+# If blackfire profiling does not work verify that your server and client credentials are correct and
+# what is the real IP used by your docker locally
 acl profile {
-   "0.0.0.0";
-   "nginx";
-   "172.18.0.1";
-   "172.18.0.9";
+   "172.0.0.0"/8;
 }
 
 acl purge {
