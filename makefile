@@ -29,6 +29,17 @@ else
 	@cp default.vcl.sample varnish/default.vcl
 	@echo "✓ VCL generated correctly"
 
+	####### PHP WWW-CONF SETTINGS #######
+	@echo "Preparing PHP-FPM WWW-CONF OVERRIDE file"
+	@cp zz-override.conf.sample php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM}}/${PHP_PM}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MAX_CHILDREN}}/${PHP_PM_MAX_CHILDREN}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_START_SERVERS}}/${PHP_PM_START_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MIN_SPARE_SERVERS}}/${PHP_PM_MIN_SPARE_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MAX_SPARE_SERVERS}}/${PHP_PM_MAX_SPARE_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_PROCESS_IDLE_TIMEOUT}}/${PHP_PM_PROCESS_IDLE_TIMEOUT}/g' php/zz-override.conf
+	@echo "✓ PHP-FPM WWW-CONF OVERRIDE file generated correctly"
+
 	## Check if .env file contains MAGENTO_STORE_CODE_{SUFFIX} and MAGENTO_STORE_URL_{SUFFIX} pattern in order to define if map store code directive should be added and if will use dynamic server name generation for the nginx conf file
 	@all_urls=""; \
 	url_nginx_map=""; \
@@ -203,6 +214,14 @@ db_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 	bin/magento s:up --keep-generated && bin/magento c:f"
+
+clean_cache:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	bin/magento c:c"
+
+flush_cache:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	bin/magento c:f"
 
 up:
 	@docker compose up -d

@@ -95,11 +95,13 @@ services:
         PHP_OPCACHE_INTERNED_STRINGS: ${PHP_OPCACHE_INTERNED_STRINGS}
         INSTALL_N98: ${INSTALL_N98}
     container_name: php-fpm
+    cpus: "${PHP_CPUS}"
     ports:
       - "9000:9000"
     volumes:
       - ${REPO_ROOT}:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ./php/zz-override.conf:/usr/local/etc/php-fpm.d/zz-override.conf
     networks:
       - magento
     depends_on:
