@@ -64,6 +64,7 @@ echo "opcache.max_accelerated_files=${PHP_OPCACHE_MAX_ACCELERATED_FILES}" >> /us
 echo "opcache.consistency_checks=${PHP_OPCACHE_CONSISTENCY_CHECKS}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 echo "opcache.validate_timestamps=${PHP_OPCACHE_VALIDATE_TIMESTAMPS}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 echo "opcache.enable_cli=${PHP_OPCACHE_ENABLE_CLI}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
+echo "opcache.enable=${PHP_OPCACHE_ENABLE}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 echo "opcache.save_comments=${PHP_OPCACHE_SAVE_COMMENTS}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 echo "opcache.enable_file_override=${PHP_OPCACHE_FILE_OVERRIDE}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini && \
 echo "opcache.interned_strings_buffer=${PHP_OPCACHE_INTERNED_STRINGS}" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini

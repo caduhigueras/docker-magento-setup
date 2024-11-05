@@ -18,11 +18,32 @@ backend default {
    }
 }
 
+# Typically Docker runs locally on an IP range from 172.*.*.*
+# This will cover from 172.0.0.0 to 172.255.255.255
+# If blackfire profiling does not work verify that your server and client credentials are correct and
+# what is the real IP used by your docker locally
+acl profile {
+   "172.0.0.0"/8;
+}
+
 acl purge {
     "nginx";
 }
 
 sub vcl_recv {
+    if (req.http.X-Blackfire-Query && client.ip ~ profile) {
+        if (req.esi_level > 0) {
+            # ESI request should not be included in the profile.
+            # Instead you should profile them separately, each one
+            # in their dedicated profile.
+            # Removing the Blackfire header avoids to trigger the profiling.
+            # Not returning let it go trough your usual workflow as a regular
+            # ESI request without distinction.
+            unset req.http.X-Blackfire-Query;
+        } else {
+            return (pass);
+        }
+    }
     if (req.restarts > 0) {
         set req.hash_always_miss = true;
     }

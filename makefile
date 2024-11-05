@@ -29,6 +29,17 @@ else
 	@cp default.vcl.sample varnish/default.vcl
 	@echo "✓ VCL generated correctly"
 
+	####### PHP WWW-CONF SETTINGS #######
+	@echo "Preparing PHP-FPM WWW-CONF OVERRIDE file"
+	@cp zz-override.conf.sample php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM}}/${PHP_PM}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MAX_CHILDREN}}/${PHP_PM_MAX_CHILDREN}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_START_SERVERS}}/${PHP_PM_START_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MIN_SPARE_SERVERS}}/${PHP_PM_MIN_SPARE_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_MAX_SPARE_SERVERS}}/${PHP_PM_MAX_SPARE_SERVERS}/g' php/zz-override.conf
+	@sed -i -e 's/{{PHP_PM_PROCESS_IDLE_TIMEOUT}}/${PHP_PM_PROCESS_IDLE_TIMEOUT}/g' php/zz-override.conf
+	@echo "✓ PHP-FPM WWW-CONF OVERRIDE file generated correctly"
+
 	## Check if .env file contains MAGENTO_STORE_CODE_{SUFFIX} and MAGENTO_STORE_URL_{SUFFIX} pattern in order to define if map store code directive should be added and if will use dynamic server name generation for the nginx conf file
 	@all_urls=""; \
 	url_nginx_map=""; \
@@ -103,7 +114,12 @@ prepare_existing_magento:
 	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
 	@echo "✓ Database create correctly"
 	@echo "Importing database from db/${DB_DUMP_NAME}"
-	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} < db/${DB_DUMP_NAME}
+	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME}
+	#UPDATE OPENSEARCH DATA STRAIGHT ON THE DATABASE
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/engine', 'opensearch') ON DUPLICATE KEY UPDATE value = 'opensearch';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_password', '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_port', '${OPENSEARCH_PORT}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_PORT}';"
+	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_hostname', '${OPENSEARCH_HOSTNAME}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_HOSTNAME}';"
 	@git clone ${REPO_TO_CLONE} ${REPO_ROOT}
 
 	# CLONE REPO AND APPLY PERMISSIONS
@@ -150,15 +166,19 @@ prepare_existing_magento:
 	@sed -i -e 's/{{REDIS_PAGE_CACHE_COMPRESS_DATA}}/$(REDIS_PAGE_CACHE_COMPRESS_DATA)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{REDIS_PAGE_CACHE_COMPRESS_LIB}}/$(REDIS_PAGE_CACHE_COMPRESS_LIB)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{CACHE_ALLOW_PARALLEL_GENERATION}}/$(CACHE_ALLOW_PARALLEL_GENERATION)/g' ${REPO_ROOT}/app/etc/env.php
-	@sed -i -e 's/{{OPENSEARCH_INITIAL_ADMIN_PASSWORD}}/$(OPENSEARCH_INITIAL_ADMIN_PASSWORD)/g' ${REPO_ROOT}/app/etc/env.php
 
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 		composer install -o --no-progress --prefer-dist && \
+		bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer && \
 		bin/magento config:set system/smtp/transport smtp && \
-		bin/magento config:set system/smtp/port 1025 && \
-		bin/magento config:set system/smtp/host mailcatcher"
-		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer"
+        bin/magento config:set system/smtp/port 1025 && \
+        bin/magento config:set system/smtp/host mailcatcher"
+
+	# START NGINX
+	@echo "Start Nginx Service"
+	@docker compose up -d nginx
+	@echo "✓ Nginx started correctly"
 
 deploy_full:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
@@ -194,3 +214,27 @@ db_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 	bin/magento s:up --keep-generated && bin/magento c:f"
+
+clean_cache:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	bin/magento c:c"
+
+flush_cache:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	bin/magento c:f"
+
+up:
+	@docker compose up -d
+
+down:
+	@docker compose down
+
+restart:
+	@docker compose restart
+
+db-import:
+	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME}
+
+db-export:
+	@mkdir -p db
+	@mysqldump -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} > db/${MAGENTO_DB_NAME}.sql
