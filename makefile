@@ -102,7 +102,9 @@ install_magento:
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 		bin/magento config:set system/smtp/transport smtp && \
 		bin/magento config:set system/smtp/port 1025 && \
-		bin/magento config:set system/smtp/host mailcatcher"
+		bin/magento config:set system/smtp/host mailcatcher && \
+		mkdir -p idea && \
+        bin/magento dev:urn-catalog:generate idea/misc.xml"
 	@echo "✓ Mailcatcher configured correctly"
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
@@ -174,6 +176,11 @@ prepare_existing_magento:
 		bin/magento config:set system/smtp/transport smtp && \
         bin/magento config:set system/smtp/port 1025 && \
         bin/magento config:set system/smtp/host mailcatcher"
+
+    # GENERATE URN CATALOG FOR PHPSTORM
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+		mkdir -p idea && \
+		bin/magento dev:urn-catalog:generate idea/misc.xml"
 
 	# START NGINX
 	@echo "Start Nginx Service"
