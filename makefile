@@ -51,6 +51,7 @@ else
 				code_value=$$(grep "^$$code_var=" .env | cut -d= -f2); \
 				all_urls="$$all_urls $$url_value"; \
 				url_nginx_map="$$url_nginx_map    $$url_value $$code_value;\n"; \
+				$(call find_and_update_in_hosts, $$url_value); \
 				;; \
 		esac; \
 	done < .env ; \
@@ -245,3 +246,15 @@ db-import:
 db-export:
 	@mkdir -p db
 	@mysqldump -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} > db/${MAGENTO_DB_NAME}.sql
+
+test:
+	@$(call find_and_update_in_hosts, "m2.oneweeex")
+
+define find_and_update_in_hosts
+	if [ -n "$(LINUX_ROOT_PASSWORD)" ]; then \
+		search=$$(grep -i $(1) /etc/hosts); \
+		if [ -z "$$search" ]; then \
+			echo "$(LINUX_ROOT_PASSWORD)" | sudo -S sh -c 'echo "127.0.0.1 $$1" >> /etc/hosts'; \
+		fi \
+	fi
+endef
