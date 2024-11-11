@@ -95,7 +95,7 @@ This project includes a `Makefile` with various commands to simplify working wit
 - **Magento Pre-configured Commands**:
   - `make deploy_full` - Launch magento deploy with composer update.
   - `make deploy` - Launch magento deploy without composer update.
-  - `make front_static_deploy` - Launch deploy of static frontend files (pub/static/frontend/*).
+  - `make front_static_deploy theme={your_theme}` - Launch deploy of static frontend files (pub/static/frontend/*).
   - `make admin_static_deploy` - Launch deploy of static adminhtml files (pub/static/adminhtml/*).
   - `make di_deploy` - Launch setup:di:compile for dependency injections.
   - `make db_deploy` - Launch setup:upgrade --heep-generated for database updates.
@@ -122,6 +122,16 @@ You can also use standard Docker Compose commands as needed:
   docker compose up -d
   ```
 
+- **List all container services**:
+  ```bash
+  docker ps
+  ```
+  
+- **Access your container bash**:
+  ```bash
+  docker exec -it <service_name> bash
+  ```
+  
 - **Stop the environment**:
   ```bash
   docker compose down
