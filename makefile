@@ -1,8 +1,27 @@
 FILE_PATH = ".env"
-SAMPLE_FILE_PATH = ".env.sample"
+SAMPLE_FILE_PATH = ".sample/.env.sample"
+DEFAULT_VCL_SAMPLE_FILE_PATH=".sample/default.vcl.sample"
+DEFAULT_VCL_FILE_PATH="varnish/default.vcl"
+PHP_ZZ_OVERRIDE_CONF_SAMPLE=".sample/zz-override.conf.sample"
+PHP_ZZ_OVERRIDE_CONF="php/zz-override.conf"
+NGINX_CONF_SAMPLE=".sample/nginx.conf.sample"
+NGINX_CONF="nginx/nginx.conf"
+SERVER_NGINX_CONF_SAMPLE=".sample/server.nginx.conf.sample"
+MAGENTO_ENV_SAMPLE=".sample/magento.env.sample"
+MARIA_DB_CNF_SAMPLE=".sample/mariadb.cnf.sample"
+MARIA_DB_CNF="mariadb/my.cnf"
+
 ifeq ($(wildcard .env), .env)
 	include .env
 endif
+
+deploy_full:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	composer update -o --no-progress --prefer-dist && \
+	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
+	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
+
 setup:
 ifneq ($(wildcard ssl/), ssl/)
 	@mkdir ssl
@@ -26,18 +45,29 @@ else
 	####### VARNISH SETTINGS #######
 	@echo "Preparing Varnish VCL file"
 	@mkdir -p varnish
-	@cp default.vcl.sample varnish/default.vcl
+	@cp $(DEFAULT_VCL_SAMPLE_FILE_PATH) $(DEFAULT_VCL_FILE_PATH)
 	@echo "✓ VCL generated correctly"
+
+	####### MARIA DB SETTINGS #######
+	@echo "Preparing MariaDB CNF file"
+	@mkdir -p mariadb
+	@cp $(MARIA_DB_CNF_SAMPLE) $(MARIA_DB_CNF)
+	@sed -i -e 's/{{INNODB_BUFFER_POOL_SIZE}}/${INNODB_BUFFER_POOL_SIZE}/g' ${MARIA_DB_CNF}
+	@sed -i -e 's/{{INNODB_LOG_FILE_SIZE}}/${INNODB_LOG_FILE_SIZE}/g' ${MARIA_DB_CNF}
+	@sed -i -e 's/{{INNODB_FLUSH_LOG_AT_TRX_COMMIT}}/${INNODB_FLUSH_LOG_AT_TRX_COMMIT}/g' ${MARIA_DB_CNF}
+	@sed -i -e 's/{{INNODB_FILE_PER_TABLE}}/${INNODB_FILE_PER_TABLE}/g' ${MARIA_DB_CNF}
+	@sed -i -e 's/{{MAX_CONNECTIONS}}/${MAX_CONNECTIONS}/g' ${MARIA_DB_CNF}
+	@echo "✓ MariaDB CNF generated correctly"
 
 	####### PHP WWW-CONF SETTINGS #######
 	@echo "Preparing PHP-FPM WWW-CONF OVERRIDE file"
-	@cp zz-override.conf.sample php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM}}/${PHP_PM}/g' php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM_MAX_CHILDREN}}/${PHP_PM_MAX_CHILDREN}/g' php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM_START_SERVERS}}/${PHP_PM_START_SERVERS}/g' php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM_MIN_SPARE_SERVERS}}/${PHP_PM_MIN_SPARE_SERVERS}/g' php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM_MAX_SPARE_SERVERS}}/${PHP_PM_MAX_SPARE_SERVERS}/g' php/zz-override.conf
-	@sed -i -e 's/{{PHP_PM_PROCESS_IDLE_TIMEOUT}}/${PHP_PM_PROCESS_IDLE_TIMEOUT}/g' php/zz-override.conf
+	@cp ${PHP_ZZ_OVERRIDE_CONF_SAMPLE} ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM}}/${PHP_PM}/g' ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM_MAX_CHILDREN}}/${PHP_PM_MAX_CHILDREN}/g' ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM_START_SERVERS}}/${PHP_PM_START_SERVERS}/g' ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM_MIN_SPARE_SERVERS}}/${PHP_PM_MIN_SPARE_SERVERS}/g' ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM_MAX_SPARE_SERVERS}}/${PHP_PM_MAX_SPARE_SERVERS}/g' ${PHP_ZZ_OVERRIDE_CONF}
+	@sed -i -e 's/{{PHP_PM_PROCESS_IDLE_TIMEOUT}}/${PHP_PM_PROCESS_IDLE_TIMEOUT}/g' ${PHP_ZZ_OVERRIDE_CONF}
 	@echo "✓ PHP-FPM WWW-CONF OVERRIDE file generated correctly"
 
 	## Check if .env file contains MAGENTO_STORE_CODE_{SUFFIX} and MAGENTO_STORE_URL_{SUFFIX} pattern in order to define if map store code directive should be added and if will use dynamic server name generation for the nginx conf file
@@ -59,8 +89,8 @@ else
 	echo "Preparing Nginx Conf file"; \
 	mkdir -p nginx; \
 	mkdir -p nginx/conf.d; \
-	cp nginx.conf.sample nginx/nginx.conf; \
-	cp server.nginx.conf.sample nginx/conf.d/$(MAGENTO_URL).conf; \
+	cp ${NGINX_CONF_SAMPLE} ${NGINX_CONF}; \
+	cp ${SERVER_NGINX_CONF_SAMPLE} nginx/conf.d/$(MAGENTO_URL).conf; \
 	\
 	# Add server name based on env \
 	if [ -n "$$all_urls" ]; then \
@@ -130,7 +160,7 @@ prepare_existing_magento:
 	sudo chown -R ${SYSTEM_USER_NAME}:www-data . "
 
 	# PREPARE MAGENTO ENV FILE
-	@cp magento.env.sample ${REPO_ROOT}/app/etc/env.php
+	@cp ${MAGENTO_ENV_SAMPLE} ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{MAGENTO_ADMIN_NAME}}/$(MAGENTO_ADMIN_NAME)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{MAGENTO_DB_NAME}}/$(MAGENTO_DB_NAME)/g' ${REPO_ROOT}/app/etc/env.php
 	@sed -i -e 's/{{MAGENTO_DB_PASSWORD}}/$(MYSQL_ROOT_PASSWORD)/g' ${REPO_ROOT}/app/etc/env.php
@@ -179,13 +209,6 @@ prepare_existing_magento:
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
 	@echo "✓ Nginx started correctly"
-
-deploy_full:
-	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
-	composer update -o --no-progress --prefer-dist && \
-	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
-	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 
 deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER

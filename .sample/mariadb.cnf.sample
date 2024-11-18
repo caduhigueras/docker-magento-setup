@@ -1,0 +1,9 @@
+[mysqld]
+# Increase the innodb buffer pool size (adjust according to your needs)
+innodb_buffer_pool_size={{INNODB_BUFFER_POOL_SIZE}}
+innodb_log_file_size={{INNODB_LOG_FILE_SIZE}}
+
+# Other recommended MariaDB settings
+innodb_flush_log_at_trx_commit={{INNODB_FLUSH_LOG_AT_TRX_COMMIT}}
+innodb_file_per_table={{INNODB_FILE_PER_TABLE}}
+max_connections={{MAX_CONNECTIONS}}

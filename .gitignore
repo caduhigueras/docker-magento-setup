@@ -8,3 +8,4 @@ ssl/*
 .
 db/*
 php/zz-override.conf
+mariadb/*.cnf
