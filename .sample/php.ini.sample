@@ -1,0 +1,9 @@
+memory_limit={{PHP_INI_MEMORY_LIMIT}}
+max_execution_time={{PHP_INI_MAX_EXECUTION_TIME}}
+upload_max_filesize={{PHP_INI_UPLOAD_MAX_FILESIZE}}
+post_max_size={{PHP_INI_POST_MAX_SIZE}}
+date.timezone={{PHP_INI_DATE_TIMEZONE}}
+realpath_cache_size={{PHP_INI_REALPATH_CACHE_SIZE}}
+realpath_cache_ttl={{PHP_INI_REALPATH_CACHE_TTL}}
+session.use_strict_mode={{PHP_INI_SESSION_USE_STRICT_MODE}}
+blackfire.agent_socket=tcp://{{PHP_INI_BLACKFIRE_AGENT_SOCKET}}

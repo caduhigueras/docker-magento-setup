@@ -39,7 +39,7 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 3. Trigger the generation of required files and settings:
    ```bash
-   make
+   make setup
    ```
 
 4. Start your Docker containers (on the first time you run, Nginx will exit):
@@ -64,7 +64,7 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 3. Trigger the generation of required files and settings:
    ```bash
-   make
+   make setup
    ```
 
 4. Copy the .sql database dump into de ./db folder (create folder if it doesn't exist)
