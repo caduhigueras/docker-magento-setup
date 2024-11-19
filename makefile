@@ -10,6 +10,8 @@ SERVER_NGINX_CONF_SAMPLE=".sample/server.nginx.conf.sample"
 MAGENTO_ENV_SAMPLE=".sample/magento.env.sample"
 MARIA_DB_CNF_SAMPLE=".sample/mariadb.cnf.sample"
 MARIA_DB_CNF="mariadb/my.cnf"
+PHP_INI_SAMPLE=".sample/php.ini.sample"
+PHP_INI="php/php.ini"
 
 ifeq ($(wildcard .env), .env)
 	include .env
@@ -57,7 +59,22 @@ else
 	@sed -i -e 's/{{INNODB_FLUSH_LOG_AT_TRX_COMMIT}}/${INNODB_FLUSH_LOG_AT_TRX_COMMIT}/g' ${MARIA_DB_CNF}
 	@sed -i -e 's/{{INNODB_FILE_PER_TABLE}}/${INNODB_FILE_PER_TABLE}/g' ${MARIA_DB_CNF}
 	@sed -i -e 's/{{MAX_CONNECTIONS}}/${MAX_CONNECTIONS}/g' ${MARIA_DB_CNF}
+	@sed -i -e 's/{{THREAD_POOL_SIZE}}/${THREAD_POOL_SIZE}/g' ${MARIA_DB_CNF}
 	@echo "✓ MariaDB CNF generated correctly"
+
+	####### PHP.INI SETTINGS #######
+	@echo "Preparing php.ini file"
+	@cp $(PHP_INI_SAMPLE) $(PHP_INI)
+	@sed -i -e 's/{{PHP_INI_MEMORY_LIMIT}}/${PHP_INI_MEMORY_LIMIT}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_MAX_EXECUTION_TIME}}/${PHP_INI_MAX_EXECUTION_TIME}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_UPLOAD_MAX_FILESIZE}}/${PHP_INI_UPLOAD_MAX_FILESIZE}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_POST_MAX_SIZE}}/${PHP_INI_POST_MAX_SIZE}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_DATE_TIMEZONE}}/${PHP_INI_DATE_TIMEZONE}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_REALPATH_CACHE_SIZE}}/${PHP_INI_REALPATH_CACHE_SIZE}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_REALPATH_CACHE_TTL}}/${PHP_INI_REALPATH_CACHE_TTL}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_SESSION_USE_STRICT_MODE}}/${PHP_INI_SESSION_USE_STRICT_MODE}/g' ${PHP_INI}
+	@sed -i -e 's/{{PHP_INI_BLACKFIRE_AGENT_SOCKET}}/'${PHP_INI_BLACKFIRE_AGENT_SOCKET}'/g' ${PHP_INI}
+	@echo "✓ php.ini generated correctly"
 
 	####### PHP WWW-CONF SETTINGS #######
 	@echo "Preparing PHP-FPM WWW-CONF OVERRIDE file"
