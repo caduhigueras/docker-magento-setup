@@ -17,13 +17,6 @@ ifeq ($(wildcard .env), .env)
 	include .env
 endif
 
-deploy_full:
-	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
-	composer update -o --no-progress --prefer-dist && \
-	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
-	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
-
 setup:
 ifneq ($(wildcard ssl/), ssl/)
 	@mkdir ssl
