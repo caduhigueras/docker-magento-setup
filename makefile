@@ -153,6 +153,10 @@ install_magento:
 		mkdir -p idea && \
         bin/magento dev:urn-catalog:generate idea/misc.xml"
 	@echo "✓ Mailcatcher configured correctly"
+	@echo "Configure Magento to Purge Varnish cache "
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+		bin/magento setup:config:set --http-cache-hosts=localhost:6081"
+	@echo "✓ Varnish Purge configured"
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
 	@echo "✓ Nginx started correctly"
@@ -228,6 +232,12 @@ prepare_existing_magento:
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 		mkdir -p idea && \
 		bin/magento dev:urn-catalog:generate idea/misc.xml"
+
+	# CONFIGURE VARNISH PURGE
+	@echo "Configure Magento to Purge Varnish cache "
+		@docker exec -it php-fpm bash -c "cd /var/www/html && \
+			bin/magento setup:config:set --http-cache-hosts=localhost:6081"
+		@echo "✓ Varnish Purge configured"
 
 	# START NGINX
 	@echo "Start Nginx Service"
