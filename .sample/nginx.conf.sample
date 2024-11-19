@@ -20,6 +20,7 @@ http {
     sendfile on;
     tcp_nopush on;
     tcp_nodelay on;
+    http2 on;
     keepalive_timeout 95;
     send_timeout 90;
     types_hash_max_size 2048;
