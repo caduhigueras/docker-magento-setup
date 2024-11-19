@@ -31,6 +31,9 @@ services:
         VARNISH_HTTP_RESP_HDR_LEN: ${VARNISH_HTTP_RESP_HDR_LEN}
         VARNISH_HTTP_RESP_SIZE: ${VARNISH_HTTP_RESP_SIZE}
         VARNISH_HTTP_WORKSPACE_BACKEND: ${VARNISH_HTTP_WORKSPACE_BACKEND}
+        VARNISH_THREAD_POOLS: ${VARNISH_THREAD_POOLS}
+        VARNISH_THREAD_POOL_MIN: ${VARNISH_THREAD_POOL_MIN}
+        VARNISH_THREAD_POOL_MAX: ${VARNISH_THREAD_POOL_MAX}
     container_name: varnish
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl
@@ -49,6 +52,11 @@ services:
   mariadb:
     image: mariadb:${MARIADB_DOCKER_IMAGE_VERSION}
     container_name: mariadb
+    deploy:
+      resources:
+        limits:
+          cpus: "${MARIADB_CPUS}"
+          memory: "${MARIADB_MEMORY}"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -94,7 +102,11 @@ services:
         PHP_OPCACHE_INTERNED_STRINGS: ${PHP_OPCACHE_INTERNED_STRINGS}
         INSTALL_N98: ${INSTALL_N98}
     container_name: php-fpm
-    cpus: "${PHP_CPUS}"
+    deploy:
+      resources:
+        limits:
+          cpus: "${PHP_CPUS}"
+          memory: "${PHP_MEMORY}"
     ports:
       - "9000:9000"
     volumes:
