@@ -115,6 +115,7 @@ services:
       BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
       BLACKFIRE_CLIENT_ID: ${BLACKFIRE_CLIENT_ID}
       BLACKFIRE_CLIENT_TOKEN: ${BLACKFIRE_CLIENT_TOKEN}
+      PHP_IDE_CONFIG: serverName=${XDEBUG_SERVER_NAME}
     env_file: ".env"
     extra_hosts:
       - "host.docker.internal:host-gateway"
