@@ -20,6 +20,9 @@ ARG VARNISH_MEMORY_ALLOCATION
 ARG VARNISH_HTTP_RESP_HDR_LEN
 ARG VARNISH_HTTP_RESP_SIZE
 ARG VARNISH_HTTP_WORKSPACE_BACKEND
+ARG VARNISH_THREAD_POOLS
+ARG VARNISH_THREAD_POOL_MIN
+ARG VARNISH_THREAD_POOL_MAX
 
 CMD varnishd -a ":${VARNISH_HTTP_PORT}" \
              -T "localhost:${VARNISH_BACKEND_PORT}" \
@@ -28,4 +31,7 @@ CMD varnishd -a ":${VARNISH_HTTP_PORT}" \
              -s "malloc,${VARNISH_MEMORY_ALLOCATION}" \
              -p "http_resp_hdr_len=${VARNISH_HTTP_RESP_HDR_LEN}" \
              -p "http_resp_size=${VARNISH_HTTP_RESP_SIZE}" \
-             -p "workspace_backend=${VARNISH_HTTP_WORKSPACE_BACKEND}"
+             -p "workspace_backend=${VARNISH_HTTP_WORKSPACE_BACKEND}" \
+             -p "thread_pools=${VARNISH_THREAD_POOLS}" \
+             -p "thread_pool_min=${VARNISH_THREAD_POOL_MIN}" \
+             -p "thread_pool_max=${VARNISH_THREAD_POOL_MAX}"
