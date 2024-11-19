@@ -149,7 +149,9 @@ install_magento:
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
 		bin/magento config:set system/smtp/transport smtp && \
 		bin/magento config:set system/smtp/port 1025 && \
-		bin/magento config:set system/smtp/host mailcatcher"
+		bin/magento config:set system/smtp/host mailcatcher && \
+		mkdir -p idea && \
+        bin/magento dev:urn-catalog:generate idea/misc.xml"
 	@echo "✓ Mailcatcher configured correctly"
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
@@ -222,10 +224,22 @@ prepare_existing_magento:
         bin/magento config:set system/smtp/port 1025 && \
         bin/magento config:set system/smtp/host mailcatcher"
 
+    # GENERATE URN CATALOG FOR PHPSTORM
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+		mkdir -p idea && \
+		bin/magento dev:urn-catalog:generate idea/misc.xml"
+
 	# START NGINX
 	@echo "Start Nginx Service"
 	@docker compose up -d nginx
 	@echo "✓ Nginx started correctly"
+
+deploy_full:
+	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
+	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	composer update -o --no-progress --prefer-dist && \
+	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
+	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 
 deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
