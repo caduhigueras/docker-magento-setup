@@ -144,7 +144,7 @@ install_magento:
 		bin/magento config:set system/smtp/port 1025 && \
 		bin/magento config:set system/smtp/host mailcatcher && \
 		mkdir -p idea && \
-        bin/magento dev:urn-catalog:generate idea/misc.xml"
+        bin/magento dev:urn-catalog:generate .idea/misc.xml"
 	@echo "✓ Mailcatcher configured correctly"
 	@echo "Configure Magento to Purge Varnish cache "
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
