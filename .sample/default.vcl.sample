@@ -11,8 +11,8 @@ backend default {
     .first_byte_timeout = 600s;
     .probe = {
         .url = "/health_check.php";
-        .timeout = 2s;
-        .interval = 5s;
+        .timeout = 60s;
+        .interval = 6000s;
         .window = 10;
         .threshold = 5;
    }
@@ -27,7 +27,7 @@ acl profile {
 }
 
 acl purge {
-    "nginx";
+    "172.0.0.0"/8;
 }
 
 sub vcl_recv {
