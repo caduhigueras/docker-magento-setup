@@ -122,7 +122,7 @@ endif
 
 install_magento:
 	@echo "Creating new database: ${MAGENTO_DB_NAME}"
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
 	@echo "✓ Database create correctly"
 	@echo "Executing install commands"
 	@docker exec -it php-fpm bash -c "cd /var/www/html && \
