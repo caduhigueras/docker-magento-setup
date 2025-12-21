@@ -120,6 +120,14 @@ else
 	echo "✓ Nginx File Conf generated correctly"
 endif
 
+update_hosts:
+	@if grep -q "${MAGENTO_URL}" /etc/hosts; then \
+		echo "${MAGENTO_URL} already set on hosts file"; \
+	else \
+		sudo echo "127.0.0.1        ${MAGENTO_URL}" >> /etc/hosts; \
+		echo "{$MAGENTO_URL} added to hosts"
+	fi
+
 install_magento:
 	@echo "Creating new database: ${MAGENTO_DB_NAME}"
 	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
