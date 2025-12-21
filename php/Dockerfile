@@ -115,7 +115,8 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');" \
     && sudo mv composer.phar /usr/local/bin/composer \
     && sudo chown -R ${SYSTEM_USER_NAME}:root /usr/local/bin/composer \
-    && sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www
+    && sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www \
+    && sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www/html
 
 ARG MAGENTO_AUTH_CONSUMER
 ARG MAGENTO_AUTH_KEY
