@@ -125,7 +125,8 @@ install_magento:
 	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
 	@echo "✓ Database create correctly"
 	@echo "Executing install commands"
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it php-fpm bash -c "sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www/html && \
+		cd /var/www/html && \
 		composer global config http-basic.repo.magento.com ${MAGENTO_AUTH_CONSUMER} ${MAGENTO_AUTH_KEY} && \
 		composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} && \
 		mv project-community-edition/* ../html/ && \
