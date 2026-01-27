@@ -166,15 +166,15 @@ install_magento:
 prepare_existing_magento:
 	# IMPORT DATABASE DUMP
 	@echo "Creating new database: ${MAGENTO_DB_NAME}"
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
 	@echo "✓ Database create correctly"
 	@echo "Importing database from db/${DB_DUMP_NAME}"
-	@pv db/${DB_DUMP_NAME} | mysql -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME}
+	@pv db/${DB_DUMP_NAME} | mariadb --ssl=0 -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME}
 	#UPDATE OPENSEARCH DATA STRAIGHT ON THE DATABASE
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/engine', 'opensearch') ON DUPLICATE KEY UPDATE value = 'opensearch';"
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_password', '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}';"
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_port', '${OPENSEARCH_PORT}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_PORT}';"
-	@mysql -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_hostname', '${OPENSEARCH_HOSTNAME}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_HOSTNAME}';"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/engine', 'opensearch') ON DUPLICATE KEY UPDATE value = 'opensearch';"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_password', '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_INITIAL_ADMIN_PASSWORD}';"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_port', '${OPENSEARCH_PORT}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_PORT}';"
+	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} -e "INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'catalog/search/opensearch_server_hostname', '${OPENSEARCH_HOSTNAME}') ON DUPLICATE KEY UPDATE value = '${OPENSEARCH_HOSTNAME}';"
 	@git clone ${REPO_TO_CLONE} ${REPO_ROOT}
 
 	# CLONE REPO AND APPLY PERMISSIONS

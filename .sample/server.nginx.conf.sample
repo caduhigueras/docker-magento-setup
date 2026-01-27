@@ -1,6 +1,7 @@
 upstream fastcgi_backend {
    # use tcp connection
-   server  php-fpm:9000;
+   # server  php-fpm:9000; #Use this if php:9000 cannot be found
+   server  php:9000;
 }
 {{MAP_DIRECTIVE}}
 server {

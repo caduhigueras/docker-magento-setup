@@ -49,8 +49,9 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 5. Run the setup command:
    ```bash
-   make setup-new-magento
+   make install_magento
    ```
+
 6. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
 
 ### Option 2. Use an Existing Magento Repository
@@ -78,7 +79,7 @@ This project provides a Docker-based setup for Magento, enabling you to quickly 
 
 7. Run the initialization command:
    ```bash
-   make setup-existing-magento
+   make prepare_existing_magento
    ```
 
 8. The Magento URL is set on the .env as MAGENTO_URL. Access the Magento installation in your browser at `http://{MAGENTO_URL}`.
