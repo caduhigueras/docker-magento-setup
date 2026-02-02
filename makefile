@@ -179,7 +179,8 @@ prepare_existing_magento:
 
 	# CLONE REPO AND APPLY PERMISSIONS
 	@cd ${REPO_ROOT} && git checkout -f ${GIT_BRANCH}
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it php-fpm bash -c "sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www/html && \
+	cd /var/www/html && \
 	sudo find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} + && \
 	sudo find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} + && \
 	sudo chown -R ${SYSTEM_USER_NAME}:www-data . "
@@ -304,3 +305,83 @@ db-import:
 db-export:
 	@mkdir -p db
 	@mysqldump -f -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 ${MAGENTO_DB_NAME} > db/${MAGENTO_DB_NAME}.sql
+
+# ============================================
+# TEST COMMANDS
+# ============================================
+
+# Start Selenium containers for MFTF testing
+selenium-up:
+	@docker compose up -d selenium-hub selenium-chrome
+	@echo "Waiting for Selenium Hub to be ready..."
+	@sleep 5
+	@curl -s http://localhost:4444/status | grep -q '"ready":true' && echo "✓ Selenium Hub is ready" || echo "⚠ Selenium Hub may not be ready yet"
+
+# Stop Selenium containers
+selenium-down:
+	@docker compose stop selenium-hub selenium-chrome
+	@docker compose rm -f selenium-hub selenium-chrome
+
+# Check Selenium status
+selenium-status:
+	@curl -s http://localhost:4444/status | jq '.' || echo "Selenium Hub is not running"
+
+# Build MFTF project
+mftf-build:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf build:project"
+
+# Generate MFTF tests
+mftf-generate:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf generate:tests"
+
+# Run MFTF doctor to check configuration
+mftf-doctor:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf doctor"
+
+# Run MFTF tests by group
+# Usage: make mftf-group group=od_checkout
+mftf-group:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf run:group $(group) --remove"
+
+# Run specific MFTF test
+# Usage: make mftf-test test=OdCreateProOrderTestUk
+mftf-test:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf run:test $(test) --remove"
+
+# Run all Onedirect customer/auth MFTF tests
+mftf-auth:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf run:group od_auth --remove"
+
+# Run all Onedirect checkout MFTF tests
+mftf-checkout:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/mftf run:group od_checkout --remove"
+
+# Run all Onedirect unit tests
+unit-test:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpunit -c dev/tests/unit/phpunit-onedirect.xml"
+
+# Run unit tests for specific module
+# Usage: make unit-test-module module=Checkout
+unit-test-module:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpunit -c dev/tests/unit/phpunit-onedirect.xml app/code/Onedirect/$(module)/Test/Unit"
+
+# Run unit tests with coverage report
+unit-test-coverage:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpunit -c dev/tests/unit/phpunit-onedirect.xml --coverage-html var/coverage/"
+	@echo "✓ Coverage report generated in www/var/coverage/"
+
+# Run PHPStan static analysis
+phpstan:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpstan analyse app/code/Onedirect --level=5"
+
+# Run PHP CodeSniffer
+phpcs:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpcs --standard=Magento2 app/code/Onedirect/"
+
+# Run PHP CodeSniffer and auto-fix issues
+phpcbf:
+	@docker exec -it php-fpm bash -c "cd /var/www/html && vendor/bin/phpcbf --standard=Magento2 app/code/Onedirect/"
+
+# Run all tests (unit + static analysis)
+test-all: unit-test phpstan phpcs
+	@echo "✓ All tests completed"
