@@ -132,6 +132,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "${MAGENTO_URL}:host-gateway"
+      # add extra urls here
 
   blackfire:
     image: blackfire/blackfire
@@ -213,23 +214,26 @@ services:
 
   # Chrome node for running tests
   selenium-chrome:
-    image: selenium/node-chrome:${SELENIUM_HUB_VERSION}
+    build:
+      context: ./selenium
+      dockerfile: Dockerfile
     container_name: selenium-chrome
     shm_size: '2gb'
     depends_on:
       - selenium-hub
     environment:
-      - SE_EVENT_BUS_HOST=selenium-hub
-      - SE_EVENT_BUS_PUBLISH_PORT=4442
-      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-      - SE_NODE_MAX_SESSIONS=${SELENIUM_NODE_MAX_SESSIONS}
-      - SE_NODE_SESSION_TIMEOUT=300
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_MAX_SESSIONS: ${SELENIUM_NODE_MAX_SESSIONS}
+      SE_NODE_SESSION_TIMEOUT: 300
     networks:
       - magento
     volumes:
       - /dev/shm:/dev/shm
     extra_hosts:
       - "m2.one:host-gateway"
+      #add extra urls here 
 
 volumes:
   dbdata:
