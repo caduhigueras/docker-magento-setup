@@ -17,6 +17,9 @@ ifeq ($(wildcard .env), .env)
 	include .env
 endif
 
+# Container name templated with NETWORK_NAME so multiple installs can coexist
+PHP_CONTAINER = php-fpm-${NETWORK_NAME}
+
 setup:
 ifneq ($(wildcard ssl/), ssl/)
 	@mkdir ssl
@@ -262,31 +265,31 @@ deploy:
 front_static_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
 	# Usage: make theme=Onedirect/blank front_static_deploy
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	rm -rf pub/static/frontend/* && bin/magento s:s:d -f -a frontend -t $(theme) && bin/magento c:f"
 
 admin_static_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	rm -rf pub/static/adminhtml/* && \
 	bin/magento s:s:d -f -a adminhtml && bin/magento c:f"
 
 di_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	rm -rf generated/* && bin/magento s:d:c && bin/magento c:f"
 
 db_deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	bin/magento s:up --keep-generated && bin/magento c:f"
 
 clean_cache:
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	bin/magento c:c"
 
 flush_cache:
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	bin/magento c:f"
 
 up:
