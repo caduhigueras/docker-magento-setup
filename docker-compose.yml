@@ -2,7 +2,7 @@ services:
   # NGINX for serving Magento
   nginx:
     image: nginx:${NGINX_DOCKER_IMAGE_VERSION}
-    container_name: nginx
+    container_name: nginx-${NETWORK_NAME}
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/conf.d:/etc/nginx/conf.d
@@ -34,7 +34,7 @@ services:
         VARNISH_THREAD_POOLS: ${VARNISH_THREAD_POOLS}
         VARNISH_THREAD_POOL_MIN: ${VARNISH_THREAD_POOL_MIN}
         VARNISH_THREAD_POOL_MAX: ${VARNISH_THREAD_POOL_MAX}
-    container_name: varnish
+    container_name: varnish-${NETWORK_NAME}
     volumes:
       - ./varnish/default.vcl:/etc/varnish/default.vcl
     ports:
@@ -101,7 +101,7 @@ services:
         PHP_OPCACHE_FILE_OVERRIDE: ${PHP_OPCACHE_FILE_OVERRIDE}
         PHP_OPCACHE_INTERNED_STRINGS: ${PHP_OPCACHE_INTERNED_STRINGS}
         INSTALL_N98: ${INSTALL_N98}
-    container_name: php-fpm
+    container_name: php-fpm-${NETWORK_NAME}
     deploy:
       resources:
         limits:
@@ -134,7 +134,7 @@ services:
 
   blackfire:
     image: blackfire/blackfire
-    container_name: blackfire
+    container_name: blackfire-${NETWORK_NAME}
     environment:
       BLACKFIRE_SERVER_ID: ${BLACKFIRE_SERVER_ID}
       BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
@@ -148,7 +148,7 @@ services:
   # Redis 7.2 for cache and session storage
   redis:
     image: redis:${REDIS_DOCKER_IMAGE_VERSION}
-    container_name: redis
+    container_name: redis-${NETWORK_NAME}
     ports:
       - "6379:6379"
     networks:
@@ -157,7 +157,7 @@ services:
   # RabbitMQ 3.13 for asynchronous messaging
   rabbitmq:
     image: rabbitmq:${RABBITMQ_DOCKER_IMAGE_VERSION}
-    container_name: rabbitmq
+    container_name: rabbitmq-${NETWORK_NAME}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -170,7 +170,7 @@ services:
   # OpenSearch 2.12 for search instead of Elasticsearch
   opensearch:
     image: opensearchproject/opensearch:${OPENSEARCH_DOCKER_IMAGE_VERSION}
-    container_name: opensearch
+    container_name: opensearch-${NETWORK_NAME}
     environment:
       - discovery.type=single-node
       - plugins.security.disabled=true
@@ -189,7 +189,7 @@ services:
   # MailCatcher service to capture emails
   mailcatcher:
     image: schickling/mailcatcher
-    container_name: mailcatcher
+    container_name: mailcatcher-${NETWORK_NAME}
     ports:
       - "1025:1025" # SMTP server
       - "1080:1080" # Web interface
