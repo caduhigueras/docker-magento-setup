@@ -136,7 +136,7 @@ install_magento:
 	@mariadb --ssl=0 -u root -p${MYSQL_ROOT_PASSWORD} -h 0.0.0.0 -P 3306 -e "create database if not exists ${MAGENTO_DB_NAME}"
 	@echo "✓ Database create correctly"
 	@echo "Executing install commands"
-	@docker exec -it php-fpm bash -c "sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "sudo chown -R ${SYSTEM_USER_NAME}:www-data /var/www/html && \
 		cd /var/www/html && \
 		composer global config http-basic.repo.magento.com ${MAGENTO_AUTH_CONSUMER} ${MAGENTO_AUTH_KEY} && \
 		composer create-project --repository=https://repo.magento.com/ magento/project-community-edition:${MAGENTO_VERSION} && \
@@ -151,7 +151,7 @@ install_magento:
 		bin/magento s:s:d -f && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 	@echo "✓ Magento installed correctly"
 	@echo "Configure MailCatcher"
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 		bin/magento config:set system/smtp/transport smtp && \
 		bin/magento config:set system/smtp/port 1025 && \
 		bin/magento config:set system/smtp/host mailcatcher && \
@@ -159,7 +159,7 @@ install_magento:
         bin/magento dev:urn-catalog:generate .idea/misc.xml"
 	@echo "✓ Mailcatcher configured correctly"
 	@echo "Configure Magento to Purge Varnish cache "
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 		bin/magento setup:config:set --http-cache-hosts=localhost:6081"
 	@echo "✓ Varnish Purge configured"
 	@echo "Start Nginx Service"
@@ -182,7 +182,7 @@ prepare_existing_magento:
 
 	# CLONE REPO AND APPLY PERMISSIONS
 	@cd ${REPO_ROOT} && git checkout -f ${GIT_BRANCH}
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	sudo find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} + && \
 	sudo find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} + && \
 	sudo chown -R ${SYSTEM_USER_NAME}:www-data . "
@@ -226,7 +226,7 @@ prepare_existing_magento:
 	@sed -i -e 's/{{CACHE_ALLOW_PARALLEL_GENERATION}}/$(CACHE_ALLOW_PARALLEL_GENERATION)/g' ${REPO_ROOT}/app/etc/env.php
 
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 		composer install -o --no-progress --prefer-dist && \
 		bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f && bin/magento deploy:mode:set developer && \
 		bin/magento config:set system/smtp/transport smtp && \
@@ -234,13 +234,13 @@ prepare_existing_magento:
         bin/magento config:set system/smtp/host mailcatcher"
 
     # GENERATE URN CATALOG FOR PHPSTORM
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 		mkdir -p idea && \
 		bin/magento dev:urn-catalog:generate idea/misc.xml"
 
 	# CONFIGURE VARNISH PURGE
 	@echo "Configure Magento to Purge Varnish cache "
-		@docker exec -it php-fpm bash -c "cd /var/www/html && \
+		@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 			bin/magento setup:config:set --http-cache-hosts=localhost:6081"
 		@echo "✓ Varnish Purge configured"
 
@@ -251,14 +251,14 @@ prepare_existing_magento:
 
 deploy_full:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	composer update -o --no-progress --prefer-dist && \
 	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
 	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 
 deploy:
 	# EXECUTE MAGENTO COMMANDS INSIDE PHP-FPM CONTAINER
-	@docker exec -it php-fpm bash -c "cd /var/www/html && \
+	@docker exec -it $(PHP_CONTAINER) bash -c "cd /var/www/html && \
 	rm -rf pub/static/frontend/* && rm -rf pub/static/adminhtml/* && \
 	bin/magento s:s:d -f && rm -rf generated/* && bin/magento s:d:c && bin/magento s:up --keep-generated && bin/magento c:f"
 
