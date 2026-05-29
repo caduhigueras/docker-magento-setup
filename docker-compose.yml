@@ -180,6 +180,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    volumes:
+      - osdata:/user/share/opensearch/data
     ports:
       - "9200:9200"
       - "9600:9600"
@@ -199,6 +201,8 @@ services:
 volumes:
   dbdata:
     driver: local
+  osdata:
+    driver: local   
 
 networks:
   magento:
