@@ -151,6 +151,8 @@ services:
     container_name: redis-${NETWORK_NAME}
     ports:
       - "6379:6379"
+    volumes:
+      - redisdata:/data
     networks:
       - magento
 
@@ -202,7 +204,9 @@ volumes:
   dbdata:
     driver: local
   osdata:
-    driver: local   
+    driver: local
+  redisdata:
+    driver: local
 
 networks:
   magento:
